@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#ff7fa8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Praise Pet</title>
+<style>
+:root{
+  --pink:#ff7fa8;--purple:#8b72ff;--ink:#40344f;--muted:#7d718a;
+  --card:rgba(255,255,255,.93);--shadow:0 16px 40px rgba(82,57,108,.17);
+  --green:#55c98a
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink);background:linear-gradient(155deg,#ffe3ed,#eee8ff 52%,#ddf6ff);
+  padding:16px 14px 50px;overflow-x:hidden
+}
+.app{width:min(100%,560px);margin:auto}
+.topbar{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.pill,.icon-btn{border:0;border-radius:999px;padding:10px 14px;background:#fff;box-shadow:var(--shadow);font-weight:900;color:var(--purple)}
+.hero{text-align:center;padding:12px 8px 4px}
+.hero h1{font-size:clamp(42px,12vw,70px);margin:10px 0 4px;text-shadow:0 5px 0 #fff}
+.hero h1 span:first-child{color:var(--pink)}
+.hero p{margin:0;color:var(--muted)}
+.card{background:var(--card);border:1px solid rgba(255,255,255,.9);box-shadow:var(--shadow);border-radius:26px;padding:18px;margin-top:15px;backdrop-filter:blur(10px)}
+.row{display:flex;gap:10px}
+input,select{
+  width:100%;min-width:0;border:2px solid #eddde8;border-radius:16px;padding:13px 14px;font-size:16px;
+  background:#fff;color:var(--ink);outline:none
+}
+input:focus,select:focus{border-color:var(--pink)}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.primary{border:0;border-radius:16px;background:var(--purple);color:#fff;font-weight:900;padding:0 18px}
+.pet-stage{text-align:center;position:relative;overflow:hidden;min-height:315px}
+.speech{background:#fff;border-radius:20px;padding:15px;font-weight:900;font-size:22px;line-height:1.45;min-height:92px;display:flex;align-items:center;justify-content:center}
+.pet-area{position:relative;margin:14px auto 4px;width:190px;height:155px;display:flex;align-items:center;justify-content:center}
+.pet{font-size:104px;line-height:1;filter:drop-shadow(0 10px 10px rgba(80,55,100,.18));animation:float 2.5s ease-in-out infinite}
+.pet.talk{animation:talk .18s ease-in-out infinite alternate}
+.mood{position:absolute;right:10px;top:2px;font-size:34px;animation:pop .45s ease}
+@keyframes float{50%{transform:translateY(-8px) rotate(2deg)}}
+@keyframes talk{from{transform:translateY(0) scale(1)}to{transform:translateY(-3px) scale(1.04)}}
+@keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+.praise-btn{
+  width:100%;border:0;border-radius:22px;padding:18px;margin-top:14px;
+  background:linear-gradient(135deg,var(--pink),#ff5f90 55%,var(--purple));
+  color:#fff;font-size:21px;font-weight:950;box-shadow:0 11px 25px rgba(255,99,143,.3)
+}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.section-head h2{font-size:19px;margin:0}
+.badge{background:#f0ebff;color:var(--purple);padding:6px 10px;border-radius:999px;font-size:13px;font-weight:900}
+ul{list-style:none;padding:0;margin:12px 0 0}
+li{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #f0e6ec;border-radius:17px;padding:11px;margin-top:9px}
+li.done{opacity:.65;background:#f2fff6}
+li.done .task{text-decoration:line-through}
+.check{width:30px;height:30px;border-radius:50%;border:2px solid var(--pink);background:#fff;color:#fff;font-weight:900}
+li.done .check{background:var(--green);border-color:var(--green)}
+.task{flex:1;font-weight:750;word-break:break-word}
+.delete{border:0;background:transparent;color:#b19daa;font-size:20px}
+.pet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pet-option{background:#fff;border:2px solid transparent;border-radius:18px;padding:11px 6px;text-align:center;font-weight:900}
+.pet-option.active{border-color:var(--pink);background:#fff4f8}
+.pet-option .emoji{font-size:42px;display:block}
+.pet-option small{display:block;color:var(--muted);margin-top:4px}
+.voice-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.voice-row label{font-size:13px;color:var(--muted);min-width:72px}
+.effect-layer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9999}
+.confetti,.coin,.firework{position:absolute;will-change:transform,opacity}
+.confetti{width:10px;height:18px;border-radius:3px;animation:fall 2.4s ease-out forwards}
+@keyframes fall{0%{transform:translateY(-30px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(760deg);opacity:0}}
+.coin{font-size:30px;animation:coin 1.8s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes coin{0%{transform:translate(0,0) scale(.4);opacity:1}100%{transform:translate(var(--x),var(--y)) scale(1.2) rotate(720deg);opacity:0}}
+.firework{width:8px;height:8px;border-radius:50%;animation:burst 1.2s ease-out forwards}
+@keyframes burst{0%{transform:translate(0,0) scale(.4);opacity:1}100%{transform:translate(var(--x),var(--y)) scale(1.7);opacity:0}}
+@media(max-width:420px){.pet-grid{grid-template-columns:repeat(3,1fr)}.speech{font-size:20px}.pet{font-size:94px}}
+
+.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.action-btn{border:0;border-radius:15px;padding:11px 7px;background:#f4efff;color:var(--purple);font-weight:900}
+.food-panel{margin-top:12px;padding:12px;border-radius:18px;background:#fff8e8;border:1px solid #f5e0a8}
+.food-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.food-icon{font-size:40px}
+.feed-btn{border:0;border-radius:14px;padding:11px 16px;background:#ffb84d;color:#fff;font-weight:900}
+.food-fly{position:absolute;font-size:42px;left:50%;top:45%;transform:translate(-50%,-50%);animation:foodFly .85s ease forwards;z-index:3}
+@keyframes foodFly{0%{transform:translate(-50%,40px) scale(.5);opacity:0}55%{transform:translate(-50%,-35px) scale(1.1);opacity:1}100%{transform:translate(-50%,-65px) scale(.25);opacity:0}}
+.pet.jump{animation:petJump .65s ease}
+.pet.spin{animation:petSpin .85s ease}
+.pet.wiggle{animation:petWiggle .75s ease}
+.pet.sleep{animation:petSleep 1.8s ease-in-out infinite}
+.pet.love{animation:petLove .55s ease}
+@keyframes petJump{0%,100%{transform:translateY(0)}45%{transform:translateY(-45px) scale(1.05)}}
+@keyframes petSpin{to{transform:rotate(360deg) scale(1.08)}}
+@keyframes petWiggle{0%,100%{transform:rotate(0)}20%{transform:rotate(-12deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-9deg)}80%{transform:rotate(9deg)}}
+@keyframes petSleep{50%{transform:translateY(5px) scale(.97)}}
+@keyframes petLove{50%{transform:scale(1.2)}}
+</style>
+</head>
+<body>
+<div class="effect-layer" id="effects"></div>
+
+<main class="app">
+  <div class="topbar">
+    <button class="pill" id="langBtn">🌏 中文</button>
+    <button class="icon-btn" id="soundBtn">🔊</button>
+  </div>
+
+  <header class="hero">
+    <h1><span id="titleA">夸夸</span><span id="titleB">我！</span></h1>
+    <p id="subtitle">让你的专属萌宠每天为你加油。</p>
+  </header>
+
+  <section class="card">
+    <label id="nameLabel"><b>你想夸奖谁？</b></label>
+    <div class="row" style="margin-top:9px">
+      <input id="nameInput" maxlength="24" placeholder="输入名字，例如 Jamie">
+      <button class="primary" id="saveNameBtn">保存</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2 id="petTitle">选择萌宠</h2>
+      <div class="badge" id="petHint">全部免费使用</div>
+    </div>
+    <div class="pet-grid" id="petGrid"></div>
+  </section>
+
+  <section class="card pet-stage">
+    <div class="speech" id="praiseText">先输入名字，再让萌宠好好夸夸你吧！</div>
+    <div class="pet-area">
+      <div class="pet" id="pet">🐼</div>
+      <div class="mood" id="mood">😊</div>
+    </div>
+
+
+    <div class="action-grid">
+      <button class="action-btn" id="jumpBtn">⬆️ 跳跃</button>
+      <button class="action-btn" id="playBtn">🎉 玩耍</button>
+      <button class="action-btn" id="sleepBtn">💤 睡觉</button>
+      <button class="action-btn" id="petBtn">🫶 摸摸</button>
+      <button class="action-btn" id="danceBtn">💃 跳舞</button>
+      <button class="action-btn" id="surpriseBtn">😲 惊喜</button>
+    </div>
+
+    <div class="food-panel">
+      <div class="food-row">
+        <div>
+          <div id="foodTitle" style="font-weight:900">专属食物</div>
+          <div id="foodName" style="color:var(--muted);font-size:14px">竹子</div>
+        </div>
+        <div class="food-icon" id="foodIcon">🎋</div>
+        <button class="feed-btn" id="feedBtn">喂食</button>
+      </div>
+    </div>
+
+    <div class="voice-row">
+      <label id="voiceLabel">语音角色</label>
+      <select id="voiceSelect"></select>
+    </div>
+
+    <button class="praise-btn" id="praiseBtn">💖 让萌宠夸夸我</button>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2 id="todoTitle">今天的待办事项</h2>
+      <div class="badge" id="counter">0 / 0 已完成</div>
+    </div>
+    <div class="row">
+      <input id="todoInput" maxlength="80" placeholder="例如：复习20道题">
+      <button class="primary" id="addBtn">新增</button>
+    </div>
+    <ul id="todoList"></ul>
+  </section>
+</main>
+
+<script>
+const T={
+ zh:{
+  lang:"🌏 中文",titleA:"夸夸",titleB:"我！",subtitle:"让你的专属萌宠每天为你加油。",
+  nameLabel:"你想夸奖谁？",namePh:"输入名字，例如 Jamie",save:"保存",
+  petTitle:"选择萌宠",petHint:"全部免费使用",voice:"语音角色",
+  praiseBtn:"💖 让萌宠夸夸我",todoTitle:"今天的待办事项",todoPh:"例如：复习20道题",
+  add:"新增",done:"已完成",init:"先输入名字，再让萌宠好好夸夸你吧！",
+  voiceTest:"你好，这就是当前选择的声音。",
+  actions:{jump:"⬆️ 跳跃",play:"🎉 玩耍",sleep:"💤 睡觉",pet:"🫶 摸摸",dance:"💃 跳舞",surprise:"😲 惊喜",foodTitle:"专属食物",feed:"喂食"},
+  reactions:{jump:"跳得好高！",play:"玩得好开心！",sleep:"呼噜呼噜，睡得真香。",pet:"好舒服，谢谢你摸摸我！",dance:"看我跳舞！",surprise:"哇！好惊喜！",feed:"太好吃了！谢谢你！"},
+  praise:[
+   "{name}，你今天真的做得太棒了！","{name}，你又比昨天进步了一点！","太厉害了，{name}！你的努力正在慢慢变成成果。",
+   "{name}，你值得为自己感到骄傲！","{name}，你认真、专注，而且非常有能力。","做得漂亮，{name}！你今天真的很有行动力。",
+   "{name}，你不是运气好，你是真的很努力！","太棒了，{name}！你正在一步一步靠近目标。","{name}，你的坚持真的很了不起。",
+   "继续加油，{name}！你已经做得比自己想象中更好了。","给你一个大大的掌声，{name}！","{name}，你今天没有放弃自己，这一点非常珍贵。"
+  ],
+  complete:[
+   "{name}，你完成了一项任务！太棒了！","任务完成！{name}，你真的说到做到。",
+   "{name}，你又拿下了一个小胜利！","完成啦，{name}！这值得好好庆祝。"
+  ]
+ },
+ en:{
+  lang:"🌏 English",titleA:"Praise",titleB:" Me!",subtitle:"Let your personal praise pet cheer you on every day.",
+  nameLabel:"Who would you like to praise?",namePh:"Enter a name, for example Jamie",save:"Save",
+  petTitle:"Choose a Pet",petHint:"All pets included",voice:"Voice",
+  praiseBtn:"💖 Let My Pet Praise Me",todoTitle:"Today's To-Do List",todoPh:"Example: Study 20 questions",
+  add:"Add",done:"done",init:"Enter a name and let your pet give you some encouragement!",
+  voiceTest:"Hello, this is the voice you selected.",
+  actions:{jump:"⬆️ Jump",play:"🎉 Play",sleep:"💤 Sleep",pet:"🫶 Pet",dance:"💃 Dance",surprise:"😲 Surprise",foodTitle:"Favorite Food",feed:"Feed"},
+  reactions:{jump:"That was a big jump!",play:"This is so much fun!",sleep:"So cozy. Time for a nap.",pet:"That feels wonderful. Thank you!",dance:"Look at me dance!",surprise:"Wow! What a surprise!",feed:"Delicious! Thank you!"},
+  praise:[
+   "{name}, you did an amazing job today!","{name}, you made real progress!","Great work, {name}! Your effort is paying off.",
+   "{name}, you should be proud of yourself!","{name}, you are focused, capable, and determined.","Excellent job, {name}! You made today count.",
+   "{name}, you are building something great one step at a time.","You did it, {name}! That is worth celebrating.","{name}, your hard work is truly impressive.",
+   "Keep going, {name}! You are doing better than you realize.","Bravo, {name}! You showed real discipline today.","{name}, you showed up for yourself today, and that matters."
+  ],
+  complete:[
+   "{name}, you completed a task! Great job!","Task complete! {name}, you really followed through.",
+   "{name}, another win! Your progress looks amazing.","You finished it, {name}! That deserves a celebration."
+  ]
+ }
+};
+
+const pets=[
+ {id:"panda",emoji:"🐼",zh:"小熊猫",en:"Panda",food:"🎋",foodZh:"竹子",foodEn:"Bamboo"},
+ {id:"cat",emoji:"🐱",zh:"小猫",en:"Cat",food:"🐟",foodZh:"小鱼",foodEn:"Fish"},
+ {id:"dog",emoji:"🐕",zh:"柴犬",en:"Shiba",food:"🍖",foodZh:"肉骨头",foodEn:"Meat bone"},
+ {id:"rabbit",emoji:"🐰",zh:"兔子",en:"Rabbit",food:"🥕",foodZh:"胡萝卜",foodEn:"Carrot"},
+ {id:"penguin",emoji:"🐧",zh:"企鹅",en:"Penguin",food:"🐠",foodZh:"小鱼",foodEn:"Fish"},
+ {id:"fox",emoji:"🦊",zh:"狐狸",en:"Fox",food:"🍗",foodZh:"鸡腿",foodEn:"Chicken"},
+ {id:"koala",emoji:"🐨",zh:"考拉",en:"Koala",food:"🌿",foodZh:"桉树叶",foodEn:"Eucalyptus"},
+ {id:"lion",emoji:"🦁",zh:"小狮子",en:"Lion",food:"🥩",foodZh:"牛排",foodEn:"Steak"},
+ {id:"unicorn",emoji:"🦄",zh:"独角兽",en:"Unicorn",food:"🧁",foodZh:"彩虹蛋糕",foodEn:"Rainbow cake"}
+];
+
+let state=JSON.parse(localStorage.getItem("praisePetAll")||"null")||{
+ lang:"en",name:"",pet:"panda",todos:[],sound:true,voiceName:""
+};
+let voices=[],lastPraise=-1;
+const $=id=>document.getElementById(id);
+
+function save(){localStorage.setItem("praisePetAll",JSON.stringify(state))}
+function tr(){return T[state.lang]}
+function safeName(){return state.name.trim()||(state.lang==="zh"?"你":"You")}
+function random(arr){let i;do{i=Math.floor(Math.random()*arr.length)}while(arr.length>1&&i===lastPraise);lastPraise=i;return arr[i]}
+
+function applyLanguage(){
+ const t=tr();
+ document.documentElement.lang=state.lang==="zh"?"zh-Hans":"en";
+ $("langBtn").textContent=t.lang;
+ $("titleA").textContent=t.titleA;$("titleB").textContent=t.titleB;$("subtitle").textContent=t.subtitle;
+ $("nameLabel").innerHTML="<b>"+t.nameLabel+"</b>";$("nameInput").placeholder=t.namePh;$("saveNameBtn").textContent=t.save;
+ $("petTitle").textContent=t.petTitle;$("petHint").textContent=t.petHint;$("voiceLabel").textContent=t.voice;
+ $("praiseBtn").textContent=t.praiseBtn;$("todoTitle").textContent=t.todoTitle;$("todoInput").placeholder=t.todoPh;$("addBtn").textContent=t.add;
+ $("jumpBtn").textContent=t.actions.jump;$("playBtn").textContent=t.actions.play;$("sleepBtn").textContent=t.actions.sleep;
+ $("petBtn").textContent=t.actions.pet;$("danceBtn").textContent=t.actions.dance;$("surpriseBtn").textContent=t.actions.surprise;
+ $("foodTitle").textContent=t.actions.foodTitle;$("feedBtn").textContent=t.actions.feed;
+ if(!$("praiseText").dataset.hasPraise)$("praiseText").textContent=t.init;
+ renderPets();renderTodos();loadVoices();
+}
+
+function renderPets(){
+ $("petGrid").innerHTML="";
+ pets.forEach(p=>{
+  const b=document.createElement("button");
+  b.className="pet-option"+(state.pet===p.id?" active":"");
+  b.innerHTML=`<span class="emoji">${p.emoji}</span>${state.lang==="zh"?p.zh:p.en}<small>${state.lang==="zh"?"点击选择":"Tap to select"}</small>`;
+  b.onclick=()=>{state.pet=p.id;save();renderPets();updatePet();showPraise(tr().praise)};
+  $("petGrid").appendChild(b);
+ });
+}
+
+function updatePet(){
+ const p=pets.find(x=>x.id===state.pet)||pets[0];
+ $("pet").textContent=p.emoji;
+ $("foodIcon").textContent=p.food;
+ $("foodName").textContent=state.lang==="zh"?p.foodZh:p.foodEn;
+ $("mood").textContent=["😊","🥰","🤩","👏","💖","🌟"][Math.floor(Math.random()*6)];
+}
+
+function loadVoices(){
+ if(!("speechSynthesis" in window))return;
+ voices=speechSynthesis.getVoices().filter(v=>state.lang==="zh"?/^zh/i.test(v.lang):/^en/i.test(v.lang));
+ $("voiceSelect").innerHTML="";
+ voices.forEach((v,i)=>{
+  const o=document.createElement("option");
+  o.value=i;o.textContent=`${v.name} (${v.lang})`;
+  $("voiceSelect").appendChild(o);
+ });
+ let idx=voices.findIndex(v=>v.name===state.voiceName);
+ if(idx<0)idx=0;
+ if(voices[idx])$("voiceSelect").value=idx;
+}
+
+function speak(text){
+ if(!state.sound||!("speechSynthesis" in window))return;
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text);
+ u.lang=state.lang==="zh"?"zh-CN":"en-US";
+ u.rate=.94;u.pitch=state.pet==="cat"?1.16:state.pet==="dog"?1.0:1.08;u.volume=1;
+ const v=voices[Number($("voiceSelect").value)];
+ if(v)u.voice=v;
+ u.onstart=()=>$("pet").classList.add("talk");
+ u.onend=()=>$("pet").classList.remove("talk");
+ u.onerror=()=>$("pet").classList.remove("talk");
+ speechSynthesis.speak(u);
+}
+
+
+function petAction(type){
+ const pet=$("pet"),t=tr();
+ pet.classList.remove("jump","spin","wiggle","sleep","love","talk");
+ void pet.offsetWidth;
+ const cls={jump:"jump",play:"wiggle",sleep:"sleep",pet:"love",dance:"spin",surprise:"jump"}[type]||"wiggle";
+ pet.classList.add(cls);
+ $("mood").textContent={jump:"🤩",play:"🥳",sleep:"😴",pet:"🥰",dance:"💃",surprise:"😲"}[type]||"😊";
+ const text=t.reactions[type];
+ $("praiseText").dataset.hasPraise="1";
+ $("praiseText").textContent=text;
+ speak(text);
+ if(type!=="sleep")setTimeout(()=>pet.classList.remove(cls),1100);
+}
+
+function feedPet(){
+ const p=pets.find(x=>x.id===state.pet)||pets[0];
+ const food=document.createElement("div");
+ food.className="food-fly";food.textContent=p.food;
+ document.querySelector(".pet-area").appendChild(food);
+ setTimeout(()=>food.remove(),900);
+ $("mood").textContent="😋";
+ const text=tr().reactions.feed+" "+(state.lang==="zh"?p.foodZh:p.foodEn)+"！";
+ $("praiseText").dataset.hasPraise="1";
+ $("praiseText").textContent=text;
+ $("pet").classList.remove("wiggle");void $("pet").offsetWidth;$("pet").classList.add("wiggle");
+ setTimeout(()=>$("pet").classList.remove("wiggle"),900);
+ celebrate();speak(text);
+}
+
+function showPraise(source){
+ const text=random(source).replaceAll("{name}",safeName());
+ $("praiseText").dataset.hasPraise="1";
+ $("praiseText").textContent=text;
+ $("praiseText").style.animation="none";void $("praiseText").offsetWidth;$("praiseText").style.animation="pop .45s ease";
+ updatePet();celebrate();speak(text);
+ if("vibrate" in navigator)navigator.vibrate([30,40,30]);
+}
+
+function celebrate(){
+ const layer=$("effects"),colors=["#ff6b9a","#ffd166","#8b72ff","#6ee7b7","#67d5ff","#ff9f43"];
+ for(let i=0;i<70;i++){
+  const e=document.createElement("div");e.className="confetti";e.style.left=Math.random()*100+"vw";
+  e.style.top=(-20-Math.random()*120)+"px";e.style.background=colors[Math.floor(Math.random()*colors.length)];
+  e.style.animationDelay=Math.random()*.45+"s";layer.appendChild(e);setTimeout(()=>e.remove(),3200);
+ }
+ for(let i=0;i<18;i++){
+  const e=document.createElement("div");e.className="coin";e.textContent="🪙";e.style.left="50vw";e.style.top="58vh";
+  e.style.setProperty("--x",`${(Math.random()-.5)*420}px`);e.style.setProperty("--y",`${-100-Math.random()*360}px`);
+  e.style.animationDelay=Math.random()*.25+"s";layer.appendChild(e);setTimeout(()=>e.remove(),2300);
+ }
+ [[20,24],[50,18],[80,26],[32,42],[70,46]].forEach(([cx,cy],b)=>{
+  for(let i=0;i<22;i++){
+   const d=document.createElement("div"),a=Math.PI*2*i/22,r=70+Math.random()*85;
+   d.className="firework";d.style.left=cx+"vw";d.style.top=cy+"vh";d.style.background=colors[b%colors.length];
+   d.style.boxShadow=`0 0 10px ${colors[b%colors.length]}`;d.style.setProperty("--x",`${Math.cos(a)*r}px`);
+   d.style.setProperty("--y",`${Math.sin(a)*r}px`);d.style.animationDelay=b*.12+"s";layer.appendChild(d);setTimeout(()=>d.remove(),1800);
+  }
+ });
+}
+
+function renderTodos(){
+ $("todoList").innerHTML="";
+ state.todos.forEach((todo,i)=>{
+  const li=document.createElement("li");if(todo.done)li.classList.add("done");
+  const c=document.createElement("button");c.className="check";c.textContent=todo.done?"✓":"";
+  c.onclick=()=>{const was=todo.done;todo.done=!todo.done;save();renderTodos();if(!was)showPraise(tr().complete)};
+  const tx=document.createElement("div");tx.className="task";tx.textContent=todo.text;
+  const del=document.createElement("button");del.className="delete";del.textContent="×";del.onclick=()=>{state.todos.splice(i,1);save();renderTodos()};
+  li.append(c,tx,del);$("todoList").appendChild(li);
+ });
+ const done=state.todos.filter(t=>t.done).length;
+ $("counter").textContent=`${done} / ${state.todos.length} ${tr().done}`;
+}
+
+$("saveNameBtn").onclick=()=>{state.name=$("nameInput").value.trim();save();showPraise(tr().praise);$("nameInput").blur()};
+$("praiseBtn").onclick=()=>showPraise(tr().praise);
+$("addBtn").onclick=()=>{
+ const text=$("todoInput").value.trim();if(!text)return;
+ state.todos.unshift({text,done:false});$("todoInput").value="";save();renderTodos();
+};
+$("langBtn").onclick=()=>{state.lang=state.lang==="zh"?"en":"zh";save();$("praiseText").dataset.hasPraise="";applyLanguage()};
+$("soundBtn").onclick=()=>{
+ state.sound=!state.sound;save();$("soundBtn").textContent=state.sound?"🔊":"🔇";
+ if(!state.sound&&"speechSynthesis" in window)speechSynthesis.cancel();
+};
+$("voiceSelect").onchange=()=>{
+ const v=voices[Number($("voiceSelect").value)];if(v){state.voiceName=v.name;save();speak(tr().voiceTest)}
+};
+$("nameInput").onkeydown=e=>{if(e.key==="Enter")$("saveNameBtn").click()};
+$("todoInput").onkeydown=e=>{if(e.key==="Enter")$("addBtn").click()};
+
+
+$("jumpBtn").addEventListener("click",()=>petAction("jump"));
+$("playBtn").addEventListener("click",()=>petAction("play"));
+$("sleepBtn").addEventListener("click",()=>petAction("sleep"));
+$("petBtn").addEventListener("click",()=>petAction("pet"));
+$("danceBtn").addEventListener("click",()=>petAction("dance"));
+$("surpriseBtn").addEventListener("click",()=>petAction("surprise"));
+$("feedBtn").addEventListener("click",feedPet);
+
+if("speechSynthesis" in window)speechSynthesis.onvoiceschanged=loadVoices;
+$("nameInput").value=state.name;
+$("soundBtn").textContent=state.sound?"🔊":"🔇";
+applyLanguage();updatePet();
+</script>
+</body>
+</html>
